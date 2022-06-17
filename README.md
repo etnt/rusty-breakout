@@ -42,3 +42,12 @@ I started by constructing the walls by smaller "brick" pieces, but
 I soon realized that it was easer to just use one brick and then
 scale it up really large and position it mostly off screen. This
 way I got nice thin solid walls.
+
+I continued with the `leve_creator` to form an upside pyramid of blocks
+that I adjusted a bit by hand. Then a little loop to create a chain
+of pyramid blocks.
+
+The collision handling was very similar to `rusty-asteroids` and with that
+I had a fully working `rusty-breakout` game... :-)
+
+![](pyramids.png)
