@@ -23,6 +23,7 @@ fn main() {
 
     // game setup goes here
     setup_walls(&mut game);
+    setup_bricks(&mut game);
 
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
     player.translation = Vec2::new(-300.0, 0.0);
@@ -92,7 +93,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         if event.state.is_end() {
             continue;
         }
-        if event.pair.one_starts_with("shot") && event.pair.one_starts_with("wall"){
+        if event.pair.one_starts_with("shot") {
             engine.audio_manager.play_sfx(SfxPreset::Impact2, 0.4);
             if event.pair.0.starts_with("shot") {
                 let mut wall_rotation = 0.0;
@@ -140,4 +141,16 @@ fn setup_walls(game: &mut Game<GameState>) {
     let a = game.add_sprite("wall_left", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(x_left, y_side); a.rotation = FRAC_PI_2; a.scale = scale; a.collision = true;
     let a = game.add_sprite("wall_right", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(x_right, y_side); a.rotation = FRAC_PI_2; a.scale = scale; a.collision = true;
     let a = game.add_sprite("wall_top", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(x_top, y_top); a.rotation = 0.0; a.scale = 6.2; a.collision = true;
+}
+
+
+fn setup_bricks(game: &mut Game<GameState>) {
+    let scale: f32 = 0.27680913;
+    let zero: f32 = 0.0;
+    let a = game.add_sprite("brick_1", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-402.2, 296.7); a.rotation = zero; a.scale = scale; a.collision = true;
+    let a = game.add_sprite("brick_2", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-456.7, 258.1); a.rotation = zero; a.scale = scale; a.collision = true;
+    let a = game.add_sprite("brick_3", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-489.0, 277.7); a.rotation = zero; a.scale = scale; a.collision = true;
+    let a = game.add_sprite("brick_4", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-523.3, 297.0); a.rotation = zero; a.scale = scale; a.collision = true;
+    let a = game.add_sprite("brick_5", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-463.0, 297.0); a.rotation = zero; a.scale = scale; a.collision = true;
+    let a = game.add_sprite("brick_6", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-428.9, 277.9); a.rotation = zero; a.scale = scale; a.collision = true;
 }
