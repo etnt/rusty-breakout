@@ -145,12 +145,19 @@ fn setup_walls(game: &mut Game<GameState>) {
 
 
 fn setup_bricks(game: &mut Game<GameState>) {
+    setup_pyramid_1(game);
+}
+
+fn setup_pyramid_1(game: &mut Game<GameState>) {
     let scale: f32 = 0.27680913;
     let zero: f32 = 0.0;
-    let a = game.add_sprite("brick_1", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-402.2, 296.7); a.rotation = zero; a.scale = scale; a.collision = true;
-    let a = game.add_sprite("brick_2", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-456.7, 258.1); a.rotation = zero; a.scale = scale; a.collision = true;
-    let a = game.add_sprite("brick_3", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-489.0, 277.7); a.rotation = zero; a.scale = scale; a.collision = true;
-    let a = game.add_sprite("brick_4", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-523.3, 297.0); a.rotation = zero; a.scale = scale; a.collision = true;
-    let a = game.add_sprite("brick_5", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-463.0, 297.0); a.rotation = zero; a.scale = scale; a.collision = true;
-    let a = game.add_sprite("brick_6", SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-428.9, 277.9); a.rotation = zero; a.scale = scale; a.collision = true;
+    let mut count: u32 = 0;
+    for x in (0..=1000).step_by(200) {
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-427.0 + x as f32, 297.0); a.rotation = zero; a.scale = scale; a.collision = true;count += 1;
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-488.0 + x as f32, 297.0); a.rotation = zero; a.scale = scale; a.collision = true; count += 1;
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-549.0 + x as f32, 297.0); a.rotation = zero; a.scale = scale; a.collision = true; count += 1;
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-517.0 + x as f32, 278.0); a.rotation = zero; a.scale = scale; a.collision = true; count += 1;
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-467.0 + x as f32, 278.0); a.rotation = zero; a.scale = scale; a.collision = true; count += 1;
+        let a = game.add_sprite(format!("brick_{}",count), SpritePreset::RacingBarrierWhite); a.translation = Vec2::new(-488.0 + x as f32, 258.0); a.rotation = zero; a.scale = scale; a.collision = true; count += 1;
+    }
 }
