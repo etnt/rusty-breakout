@@ -1,5 +1,5 @@
 use rusty_engine::prelude::*;
-use std::{f32::consts::{FRAC_PI_2, PI, TAU}, time::Duration};
+use std::{f32::consts::{FRAC_PI_2, TAU, PI}, time::Duration};
 
 const SHOT_SPEED: f32 = 200.0;
 const RELOAD_TIME: u64 = 150;
@@ -25,7 +25,7 @@ fn main() {
     setup_left_wall(&mut game);
 
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
-    player.translation = Vec2::new(0.0, 0.0);
+    player.translation = Vec2::new(-300.0, 0.0);
     player.rotation = LEFT;
     player.scale = 0.5;
     player.collision = true;
@@ -95,22 +95,32 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         if event.pair.one_starts_with("shot") && event.pair.one_starts_with("lwall"){
             engine.audio_manager.play_sfx(SfxPreset::Impact2, 0.4);
             if event.pair.0.starts_with("shot") {
+                let mut wall_rotation = 0.0;
+                {
+                    let wall = engine.sprites.get_mut(&event.pair.1).unwrap();
+                    wall_rotation = wall.rotation;
+                }
                 let shot = engine.sprites.get_mut(&event.pair.0).unwrap();
                 if shot.rotation < PI {
-                    shot.rotation -= FRAC_PI_2;
+                    shot.rotation = 2.0 * wall_rotation - shot.rotation;
                 } else if shot.rotation > PI {
-                    shot.rotation = TAU - shot.rotation;
+                    shot.rotation = 2.0 * (PI + wall_rotation) - shot.rotation;
                 } else {
-                    shot.rotation = (shot.rotation + PI) % TAU;
+                    shot.rotation += PI;
                 }
             } else if event.pair.1.starts_with("shot") {
+                let mut wall_rotation = 0.0;
+                {
+                    let wall = engine.sprites.get_mut(&event.pair.0).unwrap();
+                    wall_rotation = wall.rotation;
+                }
                 let shot = engine.sprites.get_mut(&event.pair.1).unwrap();
                 if shot.rotation < PI {
-                    shot.rotation -= FRAC_PI_2;
+                    shot.rotation = 2.0 * wall_rotation - shot.rotation;
                 } else if shot.rotation > PI {
-                    shot.rotation = 3.0 * PI - shot.rotation;
+                    shot.rotation = 2.0 * (PI + wall_rotation) - shot.rotation;
                 } else {
-                    shot.rotation = (shot.rotation + PI) % TAU;
+                    shot.rotation += PI;
                 }
             }
         }
