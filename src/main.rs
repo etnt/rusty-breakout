@@ -17,6 +17,7 @@ struct GameState {
     ammo: u32,
     sprites_to_delete: HashSet<String>,
     up_timer: Timer,
+    num_of_bricks: u32,
 }
 
 impl Default for GameState {
@@ -29,6 +30,7 @@ impl Default for GameState {
             ammo: 1,
             sprites_to_delete: HashSet::new(),
             up_timer: Timer::new(Duration::from_millis(UP_TIME), false),
+            num_of_bricks: 0,
         }
     }
 }
@@ -36,11 +38,15 @@ impl Default for GameState {
 fn main() {
     let mut game = Game::new();
 
-    let game_state = GameState::default();
+    game.audio_manager
+        .play_music(MusicPreset::WhimsicalPopsicle, 0.1);
+
+    let mut game_state = GameState::default();
 
     // game setup goes here
     setup_walls(&mut game);
-    setup_bricks(&mut game);
+    let num_of_bricks = setup_bricks(&mut game);
+    game_state.num_of_bricks = num_of_bricks;
 
     let ammo_display = game.add_text("ammo_display", format!("Ammo: {}", game_state.ammo));
     ammo_display.translation = Vec2::new(550.0, 330.0);
@@ -51,7 +57,7 @@ fn main() {
     player.collision = true;
 
     game.add_logic(game_logic);
-    game.run(GameState::default());
+    game.run(game_state);
 }
 
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
@@ -176,6 +182,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     for sprite_to_delete in &game_state.sprites_to_delete {
         if sprite_to_delete.starts_with("brick") {
             engine.sprites.remove(sprite_to_delete);
+            game_state.num_of_bricks -= 1;
         } else if sprite_to_delete.starts_with("shot") {
             engine.sprites.remove(sprite_to_delete);
             game_state.shots_active -= 1;
@@ -187,12 +194,22 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     let ammo_display = engine.texts.get_mut("ammo_display").unwrap();
     ammo_display.value = format!("Ammo: {}", game_state.ammo);
 
-    // check for lost/won game
+    // check for lost game
     if (game_state.shots_active == 0) && (game_state.ammo == 0) {
         game_state.stop = true;
         let game_over_text = engine.add_text("game_over", "You Lost!");
         game_over_text.font_size = 128.0;
+        engine.audio_manager.stop_music();
         engine.audio_manager.play_sfx(SfxPreset::Jingle3, 0.5);
+    }
+
+    // Check for won game
+    if game_state.num_of_bricks == 0 {
+        game_state.stop = true;
+        let game_over_text = engine.add_text("game_over", "You Won!");
+        game_over_text.font_size = 128.0;
+        engine.audio_manager.stop_music();
+        engine.audio_manager.play_sfx(SfxPreset::Jingle1, 0.5);
     }
 
 
@@ -223,8 +240,9 @@ fn setup_walls(game: &mut Game<GameState>) {
     a.collision = true;
 }
 
-fn setup_bricks(game: &mut Game<GameState>) {
-    setup_pyramid_1(game);
+// Return the number of bricks setup.
+fn setup_bricks(game: &mut Game<GameState>) -> u32 {
+    setup_pyramid_1(game)
 }
 
 fn random_color() -> (String, SpritePreset) {
@@ -235,7 +253,7 @@ fn random_color() -> (String, SpritePreset) {
     }
 }
 
-fn setup_pyramid_1(game: &mut Game<GameState>) {
+fn setup_pyramid_1(game: &mut Game<GameState>) -> u32 {
     let scale: f32 = 0.27680913;
     let zero: f32 = 0.0;
     let mut count: u32 = 0;
@@ -285,4 +303,5 @@ fn setup_pyramid_1(game: &mut Game<GameState>) {
             count += 1;
         }
     }
+    count
 }
