@@ -14,11 +14,16 @@ then compile and run:
 
     cargo run --release
     
-## Controls
+## Controls and how to play
 
 Balls are fired with the `SPACE` key, movement is done by 
 the `LEFT` and `RIGHT` key. Slanting the padel is done
-by the `A` (left up slant) key and the `D` (right up slant) key. 
+by the `A` (left up slant) key and the `D` (right up slant) key.
+
+You win when all the bricks are removed, and you loose when
+all the balls are gone and there is no more ammunition left.
+
+Hitting a red brick will add one ball to the ammunition store.
 
 
 ## Some notes
@@ -69,3 +74,14 @@ Instead I implemented a way to slant the Player "padel". By pressing
 either `A` or `D` the padel will now rotate left/right a small fraction
 to give the padel a slant which affects the calculation of the
 outgoing bounce. I was quite happy with how it turned out.
+
+I added four rows of pyramid bricks and to make it even more fun
+I randomly generated approximately 10% red bricks, where hitting
+a red brick will add to the ammunition store.
+
+This concluded the rules of the game. You win when all the bricks
+are removed, and you loose when all the balls are gone and there is
+no more ammunition left. I was surprised how quickly I managed
+to create this game. The tricky part was of course the bounce
+calculations; for the other parts I had good use of the techniques
+I had gathered from the `rusty-asteroids` game.
