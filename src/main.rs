@@ -1,5 +1,6 @@
+use rand::{thread_rng, Rng};
 use rusty_engine::prelude::*;
-use std::{f32::consts::{FRAC_PI_2, TAU, PI}, time::Duration};
+use std::{f32::consts::{FRAC_PI_2, FRAC_2_PI, TAU, PI, FRAC_1_PI}, time::Duration, };
 
 const SHOT_SPEED: f32 = 200.0;
 const RELOAD_TIME: u64 = 150;
@@ -25,10 +26,10 @@ fn main() {
     setup_walls(&mut game);
     setup_bricks(&mut game);
 
-    let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
-    player.translation = Vec2::new(-300.0, 0.0);
-    player.rotation = LEFT;
-    player.scale = 0.5;
+    let player = game.add_sprite("player", SpritePreset::RacingBarrierWhite);
+    player.translation = Vec2::new(-300.0, -300.0);
+    //player.rotation = 0.0;
+    player.scale = 0.3;
     player.collision = true;
 
     game.add_logic(game_logic);
@@ -53,13 +54,9 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         game_state.shot_timer.reset();
     }  else if engine.keyboard_state.pressed(KeyCode::Left) {
         // Deal with positive rotation overflow
-        player.rotation = (player.rotation + 0.05) % TAU;
+        player.translation.x -= 5.0;
     } else if engine.keyboard_state.pressed(KeyCode::Right) {
-        player.rotation -= 0.05;
-        // Deal with negative rotation overflow
-        if player.rotation < 0.0 {
-            player.rotation = TAU - player.rotation
-        };
+        player.translation.x += 5.0;
     }
 
     // Generate a new shot
@@ -69,10 +66,11 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
             format!("shot{}", game_state.shot_counter),
             SpritePreset::RollingBallRed,
         );
-        sprite.scale = 0.1;
-        sprite.rotation = player_rotation;
+        sprite.scale = 0.2;
+        let (left, right): (f32, f32) = (FRAC_PI_2 + FRAC_2_PI, FRAC_PI_2 - FRAC_2_PI);
+        sprite.rotation = thread_rng().gen_range(FRAC_1_PI..FRAC_PI_2);
         sprite.translation.x = player_x;
-        sprite.translation.y = player_y;
+        sprite.translation.y = player_y + 15.0;
         sprite.collision = true;
         engine.audio_manager.play_sfx(SfxPreset::Impact1, 0.4);
     }
