@@ -12,11 +12,14 @@ After cloning, download the assets:
 
 then compile and run:
 
-    cargo run
+    cargo run --release
     
 ## Controls
 
-TBD
+Balls are fired with the `SPACE` key, movement is done by 
+the `LEFT` and `RIGHT` key. Slanting the padel is done
+by the `A` (left up slant) key and the `D` (right up slant) key. 
+
 
 ## Some notes
 
@@ -43,11 +46,26 @@ I soon realized that it was easer to just use one brick and then
 scale it up really large and position it mostly off screen. This
 way I got nice thin solid walls.
 
-I continued with the `leve_creator` to form an upside pyramid of blocks
-that I adjusted a bit by hand. Then a little loop to create a chain
-of pyramid blocks.
+I continued with the `level_creator` to form an upside down pyramid of
+blocks that I adjusted a bit by hand. Then a little loop to create a row
+of such pyramid blocks.
+
+Since the Player only moves horizontally I wanted to have the balls
+to be fired in various directions. A random angle range centered
+around the Y-axis (ᴨ) solved that:
+
+``` rust
+    sprite.rotation = thread_rng().gen_range(FRAC_1_PI..FRAC_PI_2);
+```
 
 The collision handling was very similar to `rusty-asteroids` and with that
 I had a fully working `rusty-breakout` game... :-)
 
 ![](pyramids.png)
+
+Then I started to think about ball spin and how that could affect the
+bounce calculation but I couldn't come up with a good solution.
+Instead I implemented a way to slant the Player "padel". By pressing
+either `A` or `D` the padel will now rotate left/right a small fraction
+to give the padel a slant which affects the calculation of the
+outgoing bounce. I was quite happy with how it turned out.
