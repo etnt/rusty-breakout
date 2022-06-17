@@ -8,6 +8,7 @@ const RELOAD_TIME: u64 = 150;
 struct GameState {
     shot_counter: u32,
     shot_timer: Timer,
+    sprites_to_delete: Vec<String>,
 }
 
 impl Default for GameState {
@@ -15,6 +16,7 @@ impl Default for GameState {
         Self {
             shot_counter: 0,
             shot_timer: Timer::new(Duration::from_millis(RELOAD_TIME), false),
+            sprites_to_delete: Vec::new(),
         }
     }
 }
@@ -107,6 +109,8 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                 } else {
                     shot.rotation += PI;
                 }
+                // Push the Sprite to be removed later.
+                game_state.sprites_to_delete.push(event.pair.1.clone());
             } else if event.pair.1.starts_with("shot") {
                 let mut wall_rotation = 0.0;
                 {
@@ -121,9 +125,19 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                 } else {
                     shot.rotation += PI;
                 }
+                // Push the Sprite to be removed later.
+                game_state.sprites_to_delete.push(event.pair.0.clone());
             }
         }
     }
+
+    // Remove the sprites.
+    for sprite_to_delete in &game_state.sprites_to_delete {
+        if sprite_to_delete.starts_with("brick") {
+            engine.sprites.remove(sprite_to_delete);
+        }
+    }
+    game_state.sprites_to_delete.drain(..);
 
 
 }
