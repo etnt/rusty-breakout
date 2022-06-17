@@ -2,7 +2,7 @@ use rand::{thread_rng, Rng};
 use rusty_engine::prelude::*;
 use std::{
     f32::consts::{FRAC_1_PI, FRAC_PI_2, PI, TAU},
-    time::Duration,
+    time::Duration, collections::HashSet,
 };
 
 const SHOT_SPEED: f32 = 200.0;
@@ -10,20 +10,24 @@ const RELOAD_TIME: u64 = 150;
 const UP_TIME: u64 = 50;
 
 struct GameState {
+    stop: bool,
     shot_counter: u32,
+    shots_active: u32,
     shot_timer: Timer,
-    ammo: i32,
-    sprites_to_delete: Vec<String>,
+    ammo: u32,
+    sprites_to_delete: HashSet<String>,
     up_timer: Timer,
 }
 
 impl Default for GameState {
     fn default() -> Self {
         Self {
+            stop: false,
             shot_counter: 0,
+            shots_active: 0,
             shot_timer: Timer::new(Duration::from_millis(RELOAD_TIME), false),
             ammo: 1,
-            sprites_to_delete: Vec::new(),
+            sprites_to_delete: HashSet::new(),
             up_timer: Timer::new(Duration::from_millis(UP_TIME), false),
         }
     }
@@ -32,9 +36,14 @@ impl Default for GameState {
 fn main() {
     let mut game = Game::new();
 
+    let game_state = GameState::default();
+
     // game setup goes here
     setup_walls(&mut game);
     setup_bricks(&mut game);
+
+    let ammo_display = game.add_text("ammo_display", format!("Ammo: {}", game_state.ammo));
+    ammo_display.translation = Vec2::new(550.0, 330.0);
 
     let player = game.add_sprite("player", SpritePreset::RacingBarrierRed);
     player.translation = Vec2::new(-300.0, -300.0);
@@ -46,6 +55,11 @@ fn main() {
 }
 
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
+
+    if game_state.stop {
+        return;
+    }
+
     // Update the timers.
     game_state.shot_timer.tick(engine.delta);
     game_state.up_timer.tick(engine.delta);
@@ -83,6 +97,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     // Generate a new shot
     if shoot {
         game_state.shot_counter += 1;
+        game_state.shots_active += 1;
         let sprite = engine.add_sprite(
             format!("shot{}", game_state.shot_counter),
             SpritePreset::RollingBallRed,
@@ -102,7 +117,12 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                 SHOT_SPEED * engine.delta_f32 * (sprite.rotation as f64).cos() as f32;
             sprite.translation.y +=
                 SHOT_SPEED * engine.delta_f32 * (sprite.rotation as f64).sin() as f32;
+            // Bounds check, shot is leaving scene.
+            if sprite.translation.y < -400.0 {
+                game_state.sprites_to_delete.insert(sprite.label.clone());
+            }
         }
+
     }
 
     // deal with collisions
@@ -113,10 +133,8 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         }
         if event.pair.one_starts_with("shot") {
             engine.audio_manager.play_sfx(SfxPreset::Impact2, 0.4);
-            println!("Event pair: ({},{})", event.pair.0, event.pair.1);
-            if event.pair.either_contains("red") {
+            if event.pair.0.contains("red") || event.pair.1.contains("red") {
                 game_state.ammo += 1;
-                println!("Ammo = {}", game_state.ammo);
             }
             if event.pair.0.starts_with("shot") {
                 let mut wall_rotation = 0.0;
@@ -133,7 +151,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                     shot.rotation += PI;
                 }
                 // Push the Sprite to be removed later.
-                game_state.sprites_to_delete.push(event.pair.1.clone());
+                game_state.sprites_to_delete.insert(event.pair.1.clone());
             } else if event.pair.1.starts_with("shot") {
                 let mut wall_rotation = 0.0;
                 {
@@ -149,7 +167,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                     shot.rotation += PI;
                 }
                 // Push the Sprite to be removed later.
-                game_state.sprites_to_delete.push(event.pair.0.clone());
+                game_state.sprites_to_delete.insert(event.pair.0.clone());
             }
         }
     }
@@ -158,9 +176,26 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     for sprite_to_delete in &game_state.sprites_to_delete {
         if sprite_to_delete.starts_with("brick") {
             engine.sprites.remove(sprite_to_delete);
+        } else if sprite_to_delete.starts_with("shot") {
+            engine.sprites.remove(sprite_to_delete);
+            game_state.shots_active -= 1;
         }
     }
-    game_state.sprites_to_delete.drain(..);
+    let _ = game_state.sprites_to_delete.drain();
+
+    // Update the Ammo display
+    let ammo_display = engine.texts.get_mut("ammo_display").unwrap();
+    ammo_display.value = format!("Ammo: {}", game_state.ammo);
+
+    // check for lost/won game
+    if (game_state.shots_active == 0) && (game_state.ammo == 0) {
+        game_state.stop = true;
+        let game_over_text = engine.add_text("game_over", "You Lost!");
+        game_over_text.font_size = 128.0;
+        engine.audio_manager.play_sfx(SfxPreset::Jingle3, 0.5);
+    }
+
+
 }
 
 fn setup_walls(game: &mut Game<GameState>) {
